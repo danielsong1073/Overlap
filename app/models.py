@@ -12,25 +12,25 @@ class User(Base):
     password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    posts = relationship("Post", back_populates="owner")
+    entries = relationship("Entry", back_populates="owner")
 
-class Post(Base):
-  __tablename__ = "posts"
+class Entry(Base):
+    __tablename__ = "entries"
 
-  id = Column(Integer, primary_key=True, index=True)
-  user_id = Column(Integer, ForeignKey("users.id"))
-  media_type = Column(String, nullable=False)
-  title = Column(String, nullable=False)
-  status = Column(String, nullable=False)
-  created_at = Column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    media_type = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-  owner = relationship("User", back_populates="posts")
+    owner = relationship("User", back_populates="entries")
 
 class Connection(Base):
-  __tablename__ = "connections"
+    __tablename__ = "connections"
 
-  id = Column(Integer, primary_key=True, index=True)
-  requester_id = Column(Integer, ForeignKey("users.id"))
-  receiver_id = Column(Integer, ForeignKey("users.id"))
-  status = Column(String, default="pending") #pending, accepted, declined
-  created_at = Column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    requester_id = Column(Integer, ForeignKey("users.id"))
+    receiver_id = Column(Integer, ForeignKey("users.id"))
+    status = Column(String, default="pending") #pending, accepted, declined
+    created_at = Column(DateTime, default=datetime.utcnow)
