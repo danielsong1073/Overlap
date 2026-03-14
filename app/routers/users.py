@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import models, schemas, auth
 from ..database import get_db
+from ..auth import get_current_user
 
 router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
+
 
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -31,6 +33,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
+
 @router.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(
@@ -43,3 +46,8 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     token = auth.create_access_token(data={"sub": db_user.username})
 
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/me")
+def get_me(current_user: str = Depends(get_current_user)):
+    return {"username": current_user}
