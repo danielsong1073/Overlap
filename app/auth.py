@@ -1,12 +1,12 @@
+import os
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
 from typing import Annotated
+
+from jose import JWTError, jwt
 from pwdlib import PasswordHash
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-import os
-
 
 load_dotenv()
 
@@ -15,8 +15,8 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = PasswordHash.recommended()
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
+
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -24,6 +24,7 @@ def hash_password(password: str):
 
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
+
 
 
 def create_access_token(data: dict):
@@ -35,7 +36,7 @@ def create_access_token(data: dict):
 
 def verify_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms =[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             return None

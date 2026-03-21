@@ -52,7 +52,7 @@ def update_entry(entry_id: int, updated_entry: schemas.EntryCreate, db: Annotate
 
     return entry
 
-@router.delete("/{entry_id}")
+@router.delete("/{entry_id}", status_code=204)
 def delete_entry(entry_id: int, db: Annotated[Session, Depends(get_db)], current_user: Annotated[str, Depends(auth.get_current_user)]):
     user = db.query(models.User).filter(models.User.username == current_user).first()
     entry = db.query(models.Entry).filter(models.Entry.id == entry_id, models.Entry.user_id == user.id).first()
@@ -62,5 +62,3 @@ def delete_entry(entry_id: int, db: Annotated[Session, Depends(get_db)], current
     
     db.delete(entry)
     db.commit()
-
-    return {"message": "Entry deleted"}

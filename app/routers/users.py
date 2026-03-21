@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post("/register", response_model=schemas.UserResponse)
+@router.post("/register", status_code=201, response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]):
     existing_user = db.query(models.User).filter(
         models.User.email == user.email
@@ -42,14 +42,27 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Annota
         models.User.username == form_data.username
     ).first()
 
-    if not db_user or not auth.verify_password(form_data.password, db_user.password):
+    if not db_user:
+        auth.verify_password(form_data.password, "dummy_hash")
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+        
+    if not auth.verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
     token = auth.create_access_token(data={"sub": db_user.username})
-
     return {"access_token": token, "token_type": "bearer"}
 
 
 @router.get("/me")
 def get_me(current_user: Annotated[str, Depends(get_current_user)]):
     return {"username": current_user}
+
+
+@router.get("/{username}/shelf", response_model=list[schemas.EntryResponse])
+def get_user_shelf(username: str, db: Annotated[Session, Depends(get_db)]):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user.entries
+
