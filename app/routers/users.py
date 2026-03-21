@@ -51,5 +51,5 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Annota
 
 
 @router.get("/me")
-def get_me(current_user: str = Depends(get_current_user)):
+def get_me(current_user: Annotated[str, Depends(get_current_user)]):
     return {"username": current_user}

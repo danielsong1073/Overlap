@@ -30,7 +30,7 @@ def create_entry(entry: schemas.EntryCreate, db: Annotated[Session, Depends(get_
 
 
 @router.get("/me", response_model=list[schemas.EntryResponse])
-def get_my_entires(db: Annotated[Session, Depends(get_db)], current_user: Annotated[str, Depends(auth.get_current_user)]):
+def get_my_entries(db: Annotated[Session, Depends(get_db)], current_user: Annotated[str, Depends(auth.get_current_user)]):
     user = db.query(models.User).filter(models.User.username == current_user).first()
     return user.entries
 
