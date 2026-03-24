@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .. import models, schemas, auth
+from .. import models, schemas, auth, services
 from ..database import get_db
 
 
@@ -22,6 +22,20 @@ def create_entry(entry: schemas.EntryCreate, db: Annotated[Session, Depends(get_
         user_id=user.id
     )
 
+    if entry.media_type == "book":
+        metadata = services.get_book_metadata(entry.title)
+    elif entry.media_type == "movie":
+        metadata = services.get_movie_metadata(entry.title)
+    elif entry.media_type == "tv":
+        metadata = services.get_tv_metadata(entry.title)
+    elif entry.media_type == "game":
+        metadata = services.get_game_metadata(entry.title)
+
+    if metadata:
+        new_entry.external_id = metadata["external_id"]
+        new_entry.cover_image = metadata["cover_image"]
+        new_entry.release_year = metadata["release_year"]    
+    
     db.add(new_entry)
     db.commit()
     db.refresh(new_entry)

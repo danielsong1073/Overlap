@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -14,6 +15,7 @@ class User(Base):
 
     entries = relationship("Entry", back_populates="owner")
 
+
 class Entry(Base):
     __tablename__ = "entries"
 
@@ -22,9 +24,13 @@ class Entry(Base):
     media_type = Column(String, nullable=False)
     title = Column(String, nullable=False)
     status = Column(String, nullable=False)
+    external_id = Column(String, nullable=True)
+    cover_image = Column(String, nullable=True)
+    release_year = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="entries")
+
 
 class Connection(Base):
     __tablename__ = "connections"

@@ -48,6 +48,9 @@ class EntryResponse(BaseModel):
     title: str
     status: str
     user_id: int
+    external_id: str | None
+    cover_image: str | None
+    release_year: int | None
 
     class Config:
         from_attributes = True
