@@ -45,3 +45,44 @@ def send_connection(current_user: Annotated[str, Depends(auth.get_current_user)]
         created_at=new_connection.created_at
     )
     
+
+@router.put("/{username}/accept", response_model=schemas.ConnectionResponse)
+def accept_connection(current_user: Annotated[str, Depends(auth.get_current_user)], username: str, db: Annotated[Session, Depends(get_db)]):
+    user = db.query(models.User).filter(models.User.username == current_user).first()
+    other_user = db.query(models.User).filter(models.User.username == username).first()
+    if not other_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    connection = db.query(models.Connection).filter(models.Connection.requester_id == other_user.id, models.Connection.receiver_id == user.id).first()
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connection doesn't exist")
+    connection.status="accepted"
+    db.commit()
+    db.refresh(connection)
+
+    return schemas.ConnectionResponse(
+        requester_username=user.username,
+        receiver_username=other_user.username,
+        status=connection.status,
+        created_at=connection.created_at
+    )
+
+
+@router.put("/{username}/decline", response_model=schemas.ConnectionResponse)
+def decline_connection(current_user: Annotated[str, Depends(auth.get_current_user)], username: str, db: Annotated[Session, Depends(get_db)]):
+    user = db.query(models.User).filter(models.User.username == current_user).first()
+    other_user = db.query(models.User).filter(models.User.username == username).first()
+    if not other_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    connection = db.query(models.Connection).filter(models.Connection.requester_id == other_user.id, models.Connection.receiver_id == user.id).first()
+    if not connection:
+        raise HTTPException(status_code=400, detail="Connection doesn't exist")
+    connection.status="declined"
+    db.commit()
+    db.refresh(connection)
+
+    return schemas.ConnectionResponse(
+        requester_username=user.username,
+        receiver_username=other_user.username,
+        status=connection.status,
+        created_at=connection.created_at
+    )
