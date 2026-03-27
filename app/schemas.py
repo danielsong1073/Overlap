@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+from datetime import datetime
 
 class UserCreate(BaseModel):
     username: str
@@ -56,6 +57,15 @@ class EntryResponse(BaseModel):
     external_id: str | None
     cover_image: str | None
     release_year: int | None
+
+    class Config:
+        from_attributes = True
+
+class ConnectionResponse(BaseModel):
+    requester_username: str
+    receiver_username: str
+    status: str
+    created_at: datetime
 
     class Config:
         from_attributes = True
