@@ -1,3 +1,4 @@
+from collections import Counter
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
@@ -66,3 +67,15 @@ def get_user_shelf(username: str, db: Annotated[Session, Depends(get_db)]):
 
     return user.entries
 
+
+@router.get("/suggested", response_model=list[schemas.SuggestedUserResponse])
+def get_overlaps(current_user: Annotated[str, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]):
+    user = db.query(models.User).filter(models.User.username == current_user).first()
+    entries = user.entries
+    overlaps = Counter()
+    for entry in entries:
+        overlap = db.query(models.Entry).filter(models.Entry.external_id == entry.external_id, models.Entry.external_id.isnot(None), models.Entry.user_id != user.id).all()
+        for o in overlap:
+            overlaps[o.owner.username] += 1
+
+    return [schemas.SuggestedUserResponse(username=username, overlap_count=count) for username, count in overlaps.most_common()]

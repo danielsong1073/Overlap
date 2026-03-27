@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.EntryResponse)
+@router.post("/", response_model=schemas.EntryResponse, status_code=201)
 def create_entry(entry: schemas.EntryCreate, db: Annotated[Session, Depends(get_db)], current_user: Annotated[str, Depends(auth.get_current_user)]):
     user = db.query(models.User).filter(models.User.username == current_user).first()
 
@@ -32,6 +32,7 @@ def create_entry(entry: schemas.EntryCreate, db: Annotated[Session, Depends(get_
         metadata = services.get_game_metadata(entry.title)
 
     if metadata:
+        new_entry.title = metadata["title"]
         new_entry.external_id = metadata["external_id"]
         new_entry.cover_image = metadata["cover_image"]
         new_entry.release_year = metadata["release_year"]    
@@ -76,3 +77,13 @@ def delete_entry(entry_id: int, db: Annotated[Session, Depends(get_db)], current
     
     db.delete(entry)
     db.commit()
+
+
+@router.get("/{external_id}/users", response_model=list[str])
+def get_users(external_id: str, db: Annotated[Session, Depends(get_db)]):
+    users = []
+    entries = db.query(models.Entry).filter(models.Entry.external_id == external_id, models.Entry.external_id.isnot(None)).all()
+    for entry in entries:
+        users.append(entry.owner.username)
+
+    return users

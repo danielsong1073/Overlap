@@ -21,6 +21,11 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class SuggestedUserResponse(BaseModel):
+    username: str
+    overlap_count: int
+
+
 class MediaType(str, Enum):
     book = "book"
     movie = "movie"
