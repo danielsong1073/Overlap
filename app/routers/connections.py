@@ -32,7 +32,7 @@ def send_connection(current_user: Annotated[str, Depends(auth.get_current_user)]
     new_connection = models.Connection(
         requester_id = user.id,
         receiver_id = other_user.id,
-        status="pending"
+        status=schemas.ConnectionStatus.pending
     )
 
     db.add(new_connection)
@@ -89,7 +89,7 @@ def decline_connection(current_user: Annotated[str, Depends(auth.get_current_use
 
 
 @router.get("/", response_model=list[schemas.ConnectionResponse])
-def get_connections(current_user: Annotated[str, Depends(auth.get_current_user)], db: Annotated[Session, Depends(get_db)], status: str="pending"):
+def get_connections(current_user: Annotated[str, Depends(auth.get_current_user)], db: Annotated[Session, Depends(get_db)], status: schemas.ConnectionStatus):
     user = db.query(models.User).filter(models.User.username == current_user).first()
     connections = db.query(models.Connection).filter(
         models.Connection.status == status,

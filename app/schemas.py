@@ -61,10 +61,17 @@ class EntryResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class ConnectionStatus(str, Enum):
+    accepted = "accepted"
+    declined = "declined"
+    pending = "pending"
+
+
 class ConnectionResponse(BaseModel):
     requester_username: str
     receiver_username: str
-    status: str
+    status: ConnectionStatus
     created_at: datetime
 
     class Config:
