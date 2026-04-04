@@ -23,7 +23,7 @@ jobs:
 
       - name: Run tests
         env:
-          DATABASE_URL: sqlite:///:memory:
+          DATABASE_URL: "sqlite:///:memory:"
           SECRET_KEY: testsecretkey
           OMDB_API_KEY: test
           RAWG_API_KEY: test
