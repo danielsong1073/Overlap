@@ -1,3 +1,6 @@
+from unittest.mock import patch 
+
+
 def test_create_entry(auth_client):
     response = auth_client.post("/entries/", json={
         "media_type": "book",
@@ -53,3 +56,22 @@ def test_delete_entry(auth_client):
 def test_delete_entry_not_found(auth_client):
    response = auth_client.delete("/entries/999")
    assert response.status_code == 404
+
+
+def test_get_users_by_external_id(auth_client):
+    mock_metadata = {
+        "title": "Dune",
+        "external_id": "OL21177W",
+        "cover_image": None,
+        "release_year": 1965
+    }
+    with patch("app.services.get_book_metadata", return_value=mock_metadata):
+        auth_client.post("/entries/", json={
+            "media_type": "book",
+            "title": "Dune",
+            "status": "reading"
+        })
+
+    response = auth_client.get("/entries/OL21177W/users")
+    assert response.status_code == 200
+    assert "testuser" in response.json()
