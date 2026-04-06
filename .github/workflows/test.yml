@@ -28,3 +28,9 @@ jobs:
           OMDB_API_KEY: test
           RAWG_API_KEY: test
         run: pytest
+
+      - name: Deploy to Render
+        if: success()
+        run: curl "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
