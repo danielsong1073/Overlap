@@ -69,6 +69,7 @@ pytest
 ```
 
 Tests use an in-memory SQLite database and do not touch your local PostgreSQL instance.
+This project uses GitHub Actions for CI/CD. On every push to main, the test suite runs automatically against an isolated enviornment, and the app deploys to Render only if all tests pass.
 
 ---
 
@@ -100,3 +101,8 @@ Tests use an in-memory SQLite database and do not touch your local PostgreSQL in
 | PUT | `/connections/{username}/decline` | Yes | Decline a request |
 | GET | `/connections/` | Yes | Get connections by status |
 | DELETE | `/connections/{username}` | Yes | Remove a connection |
+
+### Other
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/health` | No | Health check |

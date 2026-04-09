@@ -14,3 +14,8 @@ app.include_router(connections.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Overlap"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
