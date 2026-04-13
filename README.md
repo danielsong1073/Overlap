@@ -16,6 +16,7 @@ feature ranks other users by how many titles overlap with yours.
 - **Database:** PostgreSQL + SQLAlchemy + Alembic
 - **Auth:** JWT (python-jose) + Argon2 password hashing (pwdlib)
 - **External APIs:** Open Library, OMDb, RAWG
+- **Storage:** AWS S3 (profile picture uploads via presigned URLs)
 
 ---
 
@@ -83,6 +84,8 @@ This project uses GitHub Actions for CI/CD. On every push to main, the test suit
 | GET | `/users/me` | Yes | Get current user |
 | GET | `/users/suggested` | Yes | Users ranked by overlapping titles |
 | GET | `/users/{username}/shelf` | No | View a user's public shelf |
+| GET | `/users/upload-url` | Yes | Get a presigned S3 URL for profile picture upload |
+| PUT | `/users/me/profile-picture` | Yes | Save profile picture URL after upload |
 
 ### Entries
 | Method | Endpoint | Auth | Description |
