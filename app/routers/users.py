@@ -1,8 +1,12 @@
+import os
+import uuid
+import boto3
 from collections import Counter
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+from botocore.config import Config
 from .. import models, schemas, auth
 from ..database import get_db
 from ..auth import get_current_user
@@ -71,6 +75,9 @@ def get_user_shelf(username: str, db: Annotated[Session, Depends(get_db)]):
 @router.get("/suggested", response_model=list[schemas.SuggestedUserResponse])
 def get_overlaps(current_user: Annotated[str, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]):
     user = db.query(models.User).filter(models.User.username == current_user).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     entries = user.entries
     overlaps = Counter()
     for entry in entries:
@@ -79,3 +86,42 @@ def get_overlaps(current_user: Annotated[str, Depends(get_current_user)], db: An
             overlaps[o.owner.username] += 1
 
     return [schemas.SuggestedUserResponse(username=username, overlap_count=count) for username, count in overlaps.most_common()]
+
+
+@router.get("/upload-url")
+def get_upload_url(current_user: Annotated[str, Depends(get_current_user)]):
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_REGION"),
+        config=Config(signature_version="s3v4")
+    )
+    file_key = str(uuid.uuid4()) + ".jpg"
+    url = s3_client.generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": os.getenv("AWS_BUCKET_NAME"),
+            "Key": file_key,
+            "ContentType": "image/jpeg"
+        },
+        ExpiresIn=300
+    )
+
+    return {"upload_url": url, "file_key": file_key}
+
+
+@router.put("/me/profile-picture", response_model=schemas.UserResponse)
+def update_profile_picture(body: schemas.ProfilePictureUpdate,
+                           current_user: Annotated[str, Depends(get_current_user)],
+                           db: Annotated[Session, Depends(get_db)]):
+    user = db.query(models.User).filter(models.User.username == current_user).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.profile_picture = body.profile_picture_url
+    
+    db.commit()
+    db.refresh(user)
+
+    return user

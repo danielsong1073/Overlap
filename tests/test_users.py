@@ -92,3 +92,20 @@ def test_get_suggested(auth_client, auth_client2):
     assert response.status_code == 200
     assert response.json()[0]["username"] == "testuser2"
     assert response.json()[0]["overlap_count"] == 1
+
+
+def test_get_upload_url(auth_client):
+    with patch("app.routers.users.boto3.client") as mock_boto:
+        mock_boto.return_value.generate_presigned_url.return_value = "https://fake-s3-url.com/upload"
+        response = auth_client.get("/users/upload-url")
+    assert response.status_code == 200
+    assert "upload_url" in response.json()
+    assert "file_key" in response.json()
+
+
+def test_update_profile_picture(auth_client):
+    response = auth_client.put("/users/me/profile-picture", json={
+        "profile_picture_url": "https://fake-s3-url.com/image.jpg"
+    })
+    assert response.status_code == 200
+    assert response.json()["profile_picture"] == "https://fake-s3-url.com/image.jpg"

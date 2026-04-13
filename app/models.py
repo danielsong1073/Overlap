@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    profile_picture = Column(String, nullable=True)
 
     entries = relationship("Entry", back_populates="owner")
 

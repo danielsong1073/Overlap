@@ -17,9 +17,14 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    profile_picture: str | None = None
 
     class Config:
         from_attributes = True
+
+
+class ProfilePictureUpdate(BaseModel):
+    profile_picture_url: str
 
 
 class SuggestedUserResponse(BaseModel):
