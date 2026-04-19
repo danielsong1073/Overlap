@@ -1,9 +1,9 @@
 import os
 import uuid
 import boto3
-from collections import Counter
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from botocore.config import Config
@@ -78,14 +78,18 @@ def get_overlaps(current_user: Annotated[str, Depends(get_current_user)], db: An
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    entries = user.entries
-    overlaps = Counter()
-    for entry in entries:
-        overlap = db.query(models.Entry).filter(models.Entry.external_id == entry.external_id, models.Entry.external_id.isnot(None), models.Entry.user_id != user.id).all()
-        for o in overlap:
-            overlaps[o.owner.username] += 1
+    results = db.query(
+        models.User.username,
+        func.count(models.Entry.id).label("overlap_count")
+    ).join(models.Entry, models.Entry.user_id == models.User.id
+    ).filter(
+        models.Entry.external_id.in_([e.external_id for e in user.entries if e.external_id]),
+        models.Entry.user_id != user.id
+    ).group_by(models.User.username
+    ).order_by(func.count(models.Entry.id).desc()
+    ).all()
 
-    return [schemas.SuggestedUserResponse(username=username, overlap_count=count) for username, count in overlaps.most_common()]
+    return [schemas.SuggestedUserResponse(username=r.username, overlap_count=r.overlap_count) for r in results]
 
 
 @router.get("/upload-url")
